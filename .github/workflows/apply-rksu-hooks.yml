@@ -15,12 +15,10 @@ jobs:
         with:
           token: ${{ secrets.GITHUB_TOKEN }}
 
-      - name: Check for existing hooks
+      - name: Check RKSU hook
         id: hooks
         run: |
-          if grep -q "ksu_handle_execveat" fs/exec.c; then
-            echo "exists=true" >> "$GITHUB_OUTPUT"
-          elif grep -q "ksu_input_hook" drivers/input/input.c; then
+          if grep -q "ksu_handle_sys_reboot" kernel/reboot.c; then
             echo "exists=true" >> "$GITHUB_OUTPUT"
           else
             echo "exists=false" >> "$GITHUB_OUTPUT"
