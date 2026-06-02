@@ -20,7 +20,7 @@ jobs:
         run: |
           if grep -q "ksu_handle_execveat" fs/exec.c; then
             echo "exists=true" >> "$GITHUB_OUTPUT"
-          else if grep -q "ksu_input_hook" drivers/input/input.c; then
+          elif grep -q "ksu_input_hook" drivers/input/input.c; then
             echo "exists=true" >> "$GITHUB_OUTPUT"
           else
             echo "exists=false" >> "$GITHUB_OUTPUT"
