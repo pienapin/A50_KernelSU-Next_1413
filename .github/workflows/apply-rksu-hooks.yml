@@ -1,0 +1,60 @@
+name: Apply RKSU Hooks
+
+on:
+  workflow_dispatch:
+
+permissions:
+  contents: write
+
+jobs:
+  patch:
+    runs-on: ubuntu-latest
+
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          token: ${{ secrets.GITHUB_TOKEN }}
+
+      - name: Check for existing hooks
+        id: hooks
+        run: |
+          if grep -q "ksu_handle_execveat" fs/exec.c; then
+            echo "exists=true" >> "$GITHUB_OUTPUT"
+          else if grep -q "ksu_input_hook" drivers/input/input.c; then
+            echo "exists=true" >> "$GITHUB_OUTPUT"
+          else
+            echo "exists=false" >> "$GITHUB_OUTPUT"
+          fi
+
+      - name: Download patch
+        if: steps.hooks.outputs.exists == 'false'
+        run: |
+          curl -L \
+            https://raw.githubusercontent.com/rksuorg/kernel_patches/master/manual_hook/kernel-4.14.patch \
+            -o kernel-4.14.patch
+
+      - name: Apply patch
+        if: steps.hooks.outputs.exists == 'false'
+        run: |
+          git apply --check kernel-4.14.patch
+          git apply kernel-4.14.patch
+
+      - name: Commit changes
+        if: steps.hooks.outputs.exists == 'false'
+        run: |
+          git config user.name "github-actions[bot]"
+          git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
+
+          git add .
+
+          git commit -m "RKSU: add manual hook support for 4.14"
+
+      - name: Push changes
+        if: steps.hooks.outputs.exists == 'false'
+        run: |
+          git push
+
+      - name: Already patched
+        if: steps.hooks.outputs.exists == 'true'
+        run: |
+          echo "Manual hooks already present"
